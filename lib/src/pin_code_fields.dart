@@ -354,7 +354,9 @@ class _PinCodeTextFieldState extends State<PinCodeTextField>
     );
     _offsetAnimation = Tween<Offset>(
       begin: Offset.zero,
-      end: const Offset(.1, 0.0),
+      end: widget.errorAnimationController == ErrorAnimationType.shake
+          ? Offset(.1, 0)
+          : widget.errorAnimationController == ErrorAnimationType.verticalShake? Offset(0,0.1) : Offset.zero,
     ).animate(CurvedAnimation(
       parent: _controller,
       curve: Curves.elasticIn,
@@ -373,6 +375,22 @@ class _PinCodeTextFieldState extends State<PinCodeTextField>
       _errorAnimationSubscription =
           widget.errorAnimationController!.stream.listen((errorAnimation) {
         if (errorAnimation == ErrorAnimationType.shake) {
+          _offsetAnimation = Tween<Offset>(
+            begin: Offset.zero,
+            end: Offset(.1, 0)).animate(CurvedAnimation(
+            parent: _controller,
+            curve: Curves.elasticIn,
+          ));
+          _controller.forward();
+          setState(() => isInErrorMode = true);
+        }else if (errorAnimation == ErrorAnimationType.verticalShake) {
+          _offsetAnimation = Tween<Offset>(
+            begin: Offset.zero,
+            end: Offset(0,0.1)
+          ).animate(CurvedAnimation(
+            parent: _controller,
+            curve: Curves.elasticIn,
+          ));
           _controller.forward();
           setState(() => isInErrorMode = true);
         }
@@ -719,11 +737,13 @@ class _PinCodeTextFieldState extends State<PinCodeTextField>
       textDirection: widget.errorTextDirection,
       child: Padding(
         padding: widget.errorTextMargin,
+
         child: TextFormField(
           textInputAction: widget.textInputAction,
           controller: _textEditingController,
           focusNode: _focusNode,
           enabled: widget.enabled,
+
           autofillHints: widget.enablePinAutofill && widget.enabled
               ? <String>[AutofillHints.oneTimeCode]
               : null,
@@ -964,4 +984,4 @@ class _PinCodeTextFieldState extends State<PinCodeTextField>
 
 enum PinCodeFieldShape { box, underline, circle }
 
-enum ErrorAnimationType { shake }
+enum ErrorAnimationType { shake, verticalShake }
